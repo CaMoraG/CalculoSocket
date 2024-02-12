@@ -14,10 +14,12 @@ public class Client {
         System.out.print("Introduzca el tamaño del arreglo a ordenar: ");
         int size = scanner.nextInt();
         int[] array = new int[size];
-        System.out.print("Introduzca los numeros del arreglo de tamaño "+size);
+        System.out.print("Introduzca los numeros del arreglo de tamaño "+size+"\n");
         for(int i=0;i<size;i++){
             array[i]=scanner.nextInt();
         }
+
+        System.out.print("Arreglo sin ordenar: "+Arrays.toString(array)+"\n");
 
         ObjectOutputStream oos = new ObjectOutputStream(calculationServer.getOutputStream());
         oos.writeObject(array);

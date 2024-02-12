@@ -3,6 +3,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class CalculationServer {
     public static void main(String[] args) {
@@ -18,17 +19,18 @@ public class CalculationServer {
                 int[] array = (int[]) ois.readObject();
 
                 int size = array.length;
-                int topsize, bottomsize;
+                int topsize, bottomsize, bottomindex;
                 if(size%2==0){
-                    topsize = bottomsize = size/2;
+                    bottomindex = topsize = bottomsize = size/2;
                 } else{
                     topsize = size/2;
-                    bottomsize = (size/2)+1;
+                    bottomindex = bottomsize = (size/2)+1;
+                    bottomindex--;
                 }
                 int[] top = new int[topsize];
                 int[] bottom = new int[bottomsize];
                 System.arraycopy(array,0,top,0,topsize);
-                System.arraycopy(array,bottomsize,bottom,0,bottomsize);
+                System.arraycopy(array,bottomindex,bottom,0,bottomsize);
 
                 Socket operationServer1Socket = new Socket("localhost", 12346);
                 ObjectOutputStream oos = new ObjectOutputStream(operationServer1Socket.getOutputStream());
@@ -51,6 +53,9 @@ public class CalculationServer {
                 ois = new ObjectInputStream(operationServer2Socket.getInputStream());
                 bottom = (int[]) ois.readObject();
                 operationServer2Socket.close();
+
+                System.out.println("Subarreglo1: "+ Arrays.toString(top));
+                System.out.println("Subarreglo2: "+ Arrays.toString(bottom));
 
                 array = jointArrays(top, bottom, size);
                 System.out.println("Arreglo ordenado");

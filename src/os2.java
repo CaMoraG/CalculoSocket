@@ -4,7 +4,7 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class OperationServer {
+public class os2 {
     public static void main(String[] args) {
         try {
             int opserverId = Integer.parseInt(args[0]);
