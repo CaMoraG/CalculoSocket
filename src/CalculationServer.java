@@ -12,12 +12,15 @@ public class CalculationServer {
             System.out.println("Servidor de cálculo esperando conexiones...");
 
             while (true) {
+                //Recibe la conexión del cliente
                 Socket client = server.accept();
                 System.out.println("Cliente conectado desde " + client.getInetAddress());
 
+                //Recibe el arreglo del cliente
                 ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
                 int[] array = (int[]) ois.readObject();
 
+                //Divide el arreglo a la mitad
                 int size = array.length;
                 int topsize, bottomsize, bottomindex;
                 if(size%2==0){
@@ -32,17 +35,21 @@ public class CalculationServer {
                 System.arraycopy(array,0,top,0,topsize);
                 System.arraycopy(array,bottomindex,bottom,0,bottomsize);
 
+                //Envia la primera mitad al servidor de operacion 1
                 Socket operationServer1Socket = new Socket("localhost", 12346);
                 ObjectOutputStream oos = new ObjectOutputStream(operationServer1Socket.getOutputStream());
                 oos.writeObject(top);
                 oos.flush();
                 operationServer1Socket.close();
 
+                //Envia la segunda mitad al servidor de operacion 2
                 Socket operationServer2Socket = new Socket("localhost", 12347);
                 oos = new ObjectOutputStream(operationServer2Socket.getOutputStream());
                 oos.writeObject(bottom);
                 oos.flush();
                 operationServer2Socket.close();
+
+                //Recibe los subarreglos ordenados de los servidores de operacion
 
                 operationServer1Socket = server.accept();
                 ois = new ObjectInputStream(operationServer1Socket.getInputStream());
@@ -54,9 +61,7 @@ public class CalculationServer {
                 bottom = (int[]) ois.readObject();
                 operationServer2Socket.close();
 
-                System.out.println("Subarreglo1: "+ Arrays.toString(top));
-                System.out.println("Subarreglo2: "+ Arrays.toString(bottom));
-
+                //Une los subarreglos y da el arreglo original pero ordenado que es enviado de vuelta al cliente
                 array = jointArrays(top, bottom, size);
                 System.out.println("Arreglo ordenado");
                 oos = new ObjectOutputStream(client.getOutputStream());

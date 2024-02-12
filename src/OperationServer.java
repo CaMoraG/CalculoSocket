@@ -12,15 +12,19 @@ public class OperationServer {
             System.out.println("Servidor de operación "+ opserverId +" esperando conexiones...");
 
             while (true) {
+                //Espera la conexión con el servidor de cálculo
                 Socket calculationServer = serverSocket.accept();
                 System.out.println("Servidor de cálculo conectado desde " + calculationServer.getInetAddress());
 
+                //Recibe al subarreglo
                 ObjectInputStream ois = new ObjectInputStream(calculationServer.getInputStream());
                 int[] subarray = (int[]) ois.readObject();
 
+                //Ordena el subarreglo
                 subarray = sortArray(subarray);
                 System.out.println("Arreglo ordenado");
 
+                //Devuelve el subarreglo ordenado
                 calculationServer = new Socket("localhost", 12345);
                 ObjectOutputStream oos = new ObjectOutputStream(calculationServer.getOutputStream());
                 oos.writeObject(subarray);

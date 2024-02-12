@@ -21,10 +21,12 @@ public class Client {
 
         System.out.print("Arreglo sin ordenar: "+Arrays.toString(array)+"\n");
 
+        //Envia el arreglo
         ObjectOutputStream oos = new ObjectOutputStream(calculationServer.getOutputStream());
         oos.writeObject(array);
         oos.flush();
 
+        //Recibe el arreglo ordenado
         ObjectInputStream ois = new ObjectInputStream(calculationServer.getInputStream());
         array = (int[]) ois.readObject();
 
