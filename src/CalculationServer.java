@@ -1,3 +1,4 @@
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -19,64 +20,84 @@ public class CalculationServer {
                 //Recibe el arreglo del cliente
                 ObjectInputStream ois = new ObjectInputStream(client.getInputStream());
                 int[] array = (int[]) ois.readObject();
+                System.out.println("Arreglo recibido " + Arrays.toString(array));
 
                 //Divide el arreglo a la mitad
-                int size = array.length;
-                int topsize, bottomsize, bottomindex;
-                if(size%2==0){
-                    bottomindex = topsize = bottomsize = size/2;
-                } else{
-                    topsize = size/2;
-                    bottomindex = bottomsize = (size/2)+1;
-                    bottomindex--;
-                }
-                int[] top = new int[topsize];
-                int[] bottom = new int[bottomsize];
-                System.arraycopy(array,0,top,0,topsize);
-                System.arraycopy(array,bottomindex,bottom,0,bottomsize);
-
+                int[][] r = divideArray(array, array.length);
+                int[] top = r[0];
+                int[] bottom = r[1];
+                Socket operationServer1Socket;
+                Socket operationServer2Socket;
+                //Verifica conexiones
                 //Envia la primera mitad al servidor de operacion 1
-                Socket operationServer1Socket = new Socket("localhost", 12346);
-                ObjectOutputStream oos = new ObjectOutputStream(operationServer1Socket.getOutputStream());
-                oos.writeObject(top);
-                oos.flush();
-                operationServer1Socket.close();
-
-                //Envia la segunda mitad al servidor de operacion 2
-                Socket operationServer2Socket = new Socket("localhost", 12347);
-                oos = new ObjectOutputStream(operationServer2Socket.getOutputStream());
-                oos.writeObject(bottom);
-                oos.flush();
-                operationServer2Socket.close();
-
-                //Recibe los subarreglos ordenados de los servidores de operacion
-
-                operationServer1Socket = server.accept();
-                ois = new ObjectInputStream(operationServer1Socket.getInputStream());
-                top = (int[]) ois.readObject();
-                operationServer1Socket.close();
-
-                operationServer2Socket = server.accept();
-                ois = new ObjectInputStream(operationServer2Socket.getInputStream());
-                bottom = (int[]) ois.readObject();
-                operationServer2Socket.close();
+                try {
+                    operationServer1Socket = new Socket("10.41.103.37", 12346);
+                    sendSubarray(top, operationServer1Socket);
+                    top = receiveSubarray(server);
+                } catch (IOException e) {
+                    System.err.println("Error al conectar al servidor de operacion 1: " + e.getMessage());
+                    operationServer2Socket = new Socket("10.43.100.149", 12347);
+                    sendSubarray(top, operationServer2Socket);
+                    top = receiveSubarray(server);
+                }
+                //Envia la segunfa mitad al servidor de operacion 2
+                try {
+                    operationServer2Socket = new Socket("10.43.100.149", 12347);
+                    sendSubarray(bottom, operationServer2Socket);
+                    bottom = receiveSubarray(server);
+                } catch (IOException e) {
+                    System.err.println("Error al conectar al servidor de operacion 2: " + e.getMessage());
+                    operationServer1Socket = new Socket("10.41.103.37", 12346);
+                    sendSubarray(bottom, operationServer1Socket);
+                    bottom = receiveSubarray(server);
+                }
 
                 //Une los subarreglos y da el arreglo original pero ordenado que es enviado de vuelta al cliente
-                array = jointArrays(top, bottom, size);
+                array = jointArrays(top, bottom, array.length);
                 System.out.println("Arreglo ordenado");
-                oos = new ObjectOutputStream(client.getOutputStream());
+                ObjectOutputStream oos = new ObjectOutputStream(client.getOutputStream());
                 oos.writeObject(array);
                 oos.flush();
                 oos.close();
 
                 ois.close();
                 client.close();
+                System.out.println("Arreglo devuelto " + Arrays.toString(array));
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+    private static int[][] divideArray(int[] array, int size){
+        int topsize, bottomsize, bottomindex;
+        if(size%2==0){
+            bottomindex = topsize = bottomsize = size/2;
+        } else{
+            topsize = size/2;
+            bottomindex = bottomsize = (size/2)+1;
+            bottomindex--;
+        }
+        int[] top = new int[topsize];
+        int[] bottom = new int[bottomsize];
+        System.arraycopy(array,0,top,0,topsize);
+        System.arraycopy(array,bottomindex,bottom,0,bottomsize);
+        return new int[][]{top, bottom};
+    }
+    public static void sendSubarray(int[] subarray, Socket socket) throws IOException {
+        ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        oos.writeObject(subarray);
+        oos.flush();
+        oos.close();
+    }
+
+    public static int[] receiveSubarray(ServerSocket server) throws IOException, ClassNotFoundException {
+        Socket socket = server.accept();
+        ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        int[] r = (int[]) ois.readObject();
+        ois.close();
+        socket.close();
+
+        return r;
     }
     private static int[] jointArrays(int[] arr1, int[] arr2, int size){
         int i = 0, j = 0, k = 0;

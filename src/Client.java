@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class Client {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         Scanner scanner = new Scanner(System.in);
-        Socket calculationServer = new Socket("localhost", 12345);
+        Socket calculationServer = new Socket("10.43.100.120", 12345);
         System.out.println("Servidor de cálculo conectado desde " + calculationServer.getInetAddress());
 
         System.out.print("Introduzca el tamaño del arreglo a ordenar: ");

@@ -3,6 +3,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class OperationServer {
     public static void main(String[] args) {
@@ -19,13 +20,14 @@ public class OperationServer {
                 //Recibe al subarreglo
                 ObjectInputStream ois = new ObjectInputStream(calculationServer.getInputStream());
                 int[] subarray = (int[]) ois.readObject();
+                System.out.println("Subarreglo recibido: "+ Arrays.toString(subarray));
 
                 //Ordena el subarreglo
                 subarray = sortArray(subarray);
                 System.out.println("Arreglo ordenado");
 
                 //Devuelve el subarreglo ordenado
-                calculationServer = new Socket("localhost", 12345);
+                calculationServer = new Socket("10.43.100.120", 12345);
                 ObjectOutputStream oos = new ObjectOutputStream(calculationServer.getOutputStream());
                 oos.writeObject(subarray);
                 oos.flush();
@@ -33,6 +35,7 @@ public class OperationServer {
                 oos.close();
                 ois.close();
                 calculationServer.close();
+                System.out.println("Subarreglo devuelto: "+ Arrays.toString(subarray));
             }
         } catch (IOException e) {
             e.printStackTrace();
